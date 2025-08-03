@@ -1,11 +1,13 @@
-import { createClient } from '@supabase/supabase-js';
-import { encrypt } from '../utils/encryption.js';
+import { createClient } from "@supabase/supabase-js";
+import { encrypt } from "../utils/encryption.js";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables.');
+  throw new Error(
+    "Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables.",
+  );
 }
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -14,12 +16,12 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export async function findOneByField(table, field, value) {
   const { data, error } = await supabase
     .from(table)
-    .select('*')
+    .select("*")
     .eq(field, value)
     .limit(1)
     .single();
 
-  if (error && error.code !== 'PGRST116') throw error;
+  if (error && error.code !== "PGRST116") throw error;
   return data;
 }
 
@@ -60,14 +62,16 @@ export async function updateRowByFields(table, filters, updates) {
 }
 
 export async function findManyByFields(table, filters, options = {}) {
-  let query = supabase.from(table).select('*');
+  let query = supabase.from(table).select("*");
 
   Object.entries(filters).forEach(([key, value]) => {
     query = query.eq(key, value);
   });
 
   if (options.order) {
-    query = query.order(options.order, { ascending: options.ascending ?? true });
+    query = query.order(options.order, {
+      ascending: options.ascending ?? true,
+    });
   }
 
   if (options.limit) {
@@ -79,9 +83,9 @@ export async function findManyByFields(table, filters, options = {}) {
 }
 
 export async function findAll(table) {
-  const { data, error } = await supabase.from(table).select('*');
+  const { data, error } = await supabase.from(table).select("*");
   if (error) {
-    console.error('Supabase findAll error:', error);
+    console.error("Supabase findAll error:", error);
     throw error;
   }
   console.log(`findAll from ${table} returned:`, data);

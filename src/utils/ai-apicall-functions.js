@@ -4,7 +4,7 @@
 
 //Example
 async function getDeliveryStatus(orderId) {
-   return `El estado del pedido ${orderId} es: En camino. Llegará mañana.`;
+  return `El estado del pedido ${orderId} es: En camino. Llegará mañana.`;
 }
 
 // FUNCTION METADATA FOR GPT
@@ -15,9 +15,9 @@ const functions = [
     parameters: {
       type: "object",
       properties: {
-        orderId: { type: "string", description: "ID del pedido del cliente" }
+        orderId: { type: "string", description: "ID del pedido del cliente" },
       },
-      required: ["orderId"]
-    }
-  }
+      required: ["orderId"],
+    },
+  },
 ];
