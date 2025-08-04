@@ -6,13 +6,13 @@ import { decrypt } from "../utils/encryption.js";
 import nodemailer from "nodemailer";
 
 async function sendEmailReply({ user, to, subject = "Re: Tu consulta", text }) {
-  //const password = decrypt(user.password);
+  const decryptedPassword = decrypt(user.password);
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
       user: user.email,
-      pass: user.password, //change to encrypedPassword on production
+      pass: decryptedPassword,
     },
   });
 
@@ -27,18 +27,17 @@ async function sendEmailReply({ user, to, subject = "Re: Tu consulta", text }) {
 }
 
 export async function handleEmailsForUser(user) {
-  //const decryptedPassword = decrypt(user.encryptedPassword); uncomment on production
+  const decryptedPassword = decrypt(user.encryptedPassword);
 
   console.log("Entered email handling function");
   console.log("User received:\n", user);
   //Create IMAP connection
   const imap = new Imap({
     user: user.email,
-    password: user.password, //change to decryptedPassword on production
+    password: decryptedPassword,
     host: "imap.gmail.com",
     port: 993,
     tls: true,
-    tlsOptions: { rejectUnauthorized: false }, //remove in production
   });
 
   //Initialize IMAP Connection

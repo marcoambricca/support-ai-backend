@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { findOneByField, insertRow } from "../services/supabase.js";
+import { authenticate } from "../middleware/auth.js";
 
 const router = Router();
 
-router.post("/register-gmail", async (req, res) => {
+router.post("/register-gmail", authenticate, async (req, res) => {
   const { email, gmailAppPassword } = req.body;
 
   if (!email || !gmailAppPassword) {
