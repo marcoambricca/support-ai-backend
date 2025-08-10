@@ -4,6 +4,7 @@ import { findOneByField, insertRow } from "./supabase.js";
 import { generateClientReply } from "./openai-service.js";
 import { decrypt } from "../utils/encryption.js";
 import nodemailer from "nodemailer";
+import sanitizeHtml from "sanitize-html";
 
 async function sendEmailReply({ user, to, subject = "Re: Tu consulta", text }) {
   const decryptedPassword = decrypt(user.password);
@@ -38,6 +39,7 @@ export async function handleEmailsForUser(user) {
     host: "imap.gmail.com",
     port: 993,
     tls: true,
+    rejectUnauthorized: true,
   });
 
   //Initialize IMAP Connection
@@ -74,10 +76,13 @@ export async function handleEmailsForUser(user) {
                 });
               }
 
+              //Sanitize text
+              const cleanText = sanitizeHtml(text);
+
               // Save message to conversations table
               await insertRow("conversations", {
                 client_id: client.id,
-                message: text,
+                message: cleanText,
                 created_at: new Date().toISOString(),
               });
 
