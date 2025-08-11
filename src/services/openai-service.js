@@ -35,13 +35,14 @@ const functions = [
 export async function generateClientReply({ userIdentificator, from, text }) {
   console.log("entered ai reply function");
   console.log("user identificator:", userIdentificator);
+  console.log("from in ai", from);
   //Fetches user by Id or Email
   let userKey = isEmailOrId(userIdentificator);
   console.log("user key", userKey);
   const [user] = await findManyByFields("users", {
     [userKey]: userIdentificator,
   });
-		console.log("user in ai func", user)
+  console.log("user in ai func", user);
 
   const clientKey = isEmailOrPhone(from);
   console.log("client key", clientKey);
@@ -148,7 +149,7 @@ export async function generateClientReply({ userIdentificator, from, text }) {
         { needs_human: true },
       );
 
-      return null;
+      return "Un administrador se contactará contigo.";
     }
 
     await updateRowByFields(
@@ -177,7 +178,7 @@ export async function generateClientReply({ userIdentificator, from, text }) {
       { needs_human: true },
     );
 
-    return null;
+    return "Un administrador se contactará contigo.";
   }
 
   await updateRowByFields(

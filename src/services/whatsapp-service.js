@@ -71,6 +71,7 @@ async function saveSessionToFile(userId, sessionObj) {
 
 export async function createClientForUser(userId, onQrCallback = () => {}) {
   const uid = String(userId);
+  console.log("userid in wpp", userId);
 
   // If client already running, return early
   if (sessions.has(uid) && sessions.get(uid).client) {
@@ -107,6 +108,10 @@ export async function createClientForUser(userId, onQrCallback = () => {}) {
   });
 
   client.on("authenticated", async (session) => {
+    if (!session) {
+      console.warn("No session data received on authenticated event");
+      return;
+    }
     await persistSessionToDb(userId, session);
     await saveSessionToFile(userId, session);
     console.log(`WhatsApp authenticated for user ${userId}`);
@@ -133,13 +138,16 @@ export async function createClientForUser(userId, onQrCallback = () => {}) {
   });
 
   client.on("message_create", async (msg) => {
+    console.log("entered message create: ", msg);
     if (msg.fromMe) return;
 
     const from = msg.from.split("@")[0];
 
     try {
-      const userMessage = msg.body || "";
+      const userMessage = msg._data.body || "";
+      console.log("usermsg", userMessage);
       const result = await handleWhatsappMessage(userId, from, userMessage);
+      console.log("result", result);
 
       if (result.success && result.botResponse) {
         await client.sendMessage(msg.from, result.botResponse);
@@ -183,6 +191,9 @@ export async function stopClientForUser(userId) {
 }
 
 export async function handleWhatsappMessage(idUser, clientNumber, userMessage) {
+  console.log("iduser in handlewpp", idUser);
+  console.log("clientNumber in handle wpp", clientNumber);
+  console.log("usermsg in handle wpp", userMessage);
   try {
     if (!idUser || !clientNumber || typeof userMessage !== "string") {
       return { success: false, status: 400, message: "Invalid params" };
@@ -198,7 +209,6 @@ export async function handleWhatsappMessage(idUser, clientNumber, userMessage) {
       const inserted = await insertRow("clients", {
         phone: clientNumber,
         id_user: Number(idUser),
-        created_at: new Date().toISOString(),
       });
       clientId = inserted.id;
     } else {
@@ -216,16 +226,17 @@ export async function handleWhatsappMessage(idUser, clientNumber, userMessage) {
       }
     }
 
+    const botResponse = await generateClientReply({
+      userIdentificator: idUser,
+      from: clientNumber,
+      text: userMessage,
+    });
+    console.log("botresponse in handlewpp", botResponse);
+
     await insertRow("conversations", {
       client_id: clientId,
       message: userMessage,
       created_at: new Date().toISOString(),
-    });
-
-    const botResponse = await generateClientReply({
-      clientId,
-      clientNumber,
-      userMessage,
     });
 
     if (!botResponse) {
@@ -251,4 +262,3 @@ export async function handleWhatsappMessage(idUser, clientNumber, userMessage) {
     };
   }
 }
-
