@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import "./src/jobs/email-reply-job.js";
+// import "./src/jobs/email-reply-job.js";
 import emailRouter from "./src/routes/email-clients-routes.js";
 import userRouter from "./src/routes/user-routes.js";
 import webhookRouter from "./src/routes/webhook-routes.js";

@@ -1,27 +1,52 @@
 import { Router } from "express";
-import { handleWhatsappMessage } from "../services/whatsapp-service.js";
+import { authenticate } from "../middleware/auth.js"; // your JWT auth middleware
+import {
+  createClientForUser,
+  stopClientForUser,
+} from "../services/whatsapp-service.js";
 
 const router = Router();
 
-router.post("/gpt/:id_user", async (req, res) => {
-  const {
-    text: userMessage,
-    number: clientNumber,
-    email: clientEmail,
-  } = req.body;
-  const { id_user } = req.params;
+// Start WhatsApp session & return QR code
+router.post("/:userId/start", authenticate, async (req, res) => {
+  const { userId } = req.params;
 
-  const result = await handleWhatsappMessage(
-    id_user,
-    clientNumber,
-    userMessage,
-  );
-
-  if (!result.success) {
-    return res.status(result.status).json({ error: result.message });
+  // Ownership check: user can only start their own session
+  if (!req.user || String(req.user.id) !== String(userId)) {
+    return res.status(403).json({ error: "Forbidden" });
   }
 
-  return res.status(200).json(result.botResponse);
+  try {
+    const { qrPromise, alreadyRunning } = await createClientForUser(userId);
+
+    if (alreadyRunning) {
+      return res.status(200).json({ message: "Session already running" });
+    }
+
+    const qr = await qrPromise;
+    return res.status(200).json({ qr: qr.qr });
+  } catch (err) {
+    console.error("Failed creating WhatsApp session:", err);
+    return res.status(500).json({ error: "Failed to create WhatsApp session" });
+  }
+});
+
+// Stop WhatsApp session
+router.post("/:userId/stop", authenticate, async (req, res) => {
+  const { userId } = req.params;
+
+  if (!req.user || String(req.user.id) !== String(userId)) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  try {
+    const stopped = await stopClientForUser(userId);
+    return res.status(200).json({ stopped });
+  } catch (err) {
+    console.error("Failed to stop session:", err);
+    return res.status(500).json({ error: "Failed to stop session" });
+  }
 });
 
 export default router;
+

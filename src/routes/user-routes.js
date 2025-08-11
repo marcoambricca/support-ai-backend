@@ -3,6 +3,7 @@ import axios from "axios";
 import { generateToken } from "../utils/jwt.js";
 import { authenticate } from "../middleware/auth.js";
 import bcrypt from "bcrypt";
+import { findOneByField, insertRow } from "../services/supabase.js";
 
 const router = Router();
 
@@ -64,7 +65,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/:id_user", authenticate, async (req, res) => {
+/*router.get("/:id_user", authenticate, async (req, res) => {
   let response;
   try {
     const user = await findOneByField("users", "id", req.params.id_user);
@@ -80,5 +81,5 @@ router.get("/:id_user", authenticate, async (req, res) => {
 
   return response;
 });
-
+*/
 export default router;
